@@ -1,0 +1,227 @@
+---
+title: "The Underperformance of Man Utd"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+Manchester United - one of the world's most popular, awarded, successful, revered and followed football clubs in the world, has been on quite the roller coaster ride ever since their greatest ever manager Sir Alex Ferguson decided to part ways with the club. During his reign, Man Utd won 13 premier league titles, 5 FA Cups and 2 Champions League titles. Since he left, Man Utd has only accrued all of 4 accolades - 1 FA Cup, 1 Europa League Cup, 1 English League Cup and 1 Community Shield and have constantly seen themselves unduly fight for a top-4 finish in the Premier League. This descriptive study aims to find answers to a pressing question - Why has Manchester United underperformed in the recent seasons? 
+
+Considering that football is a fast-changing sport, with increasing standards and competition, we consider the last 5 seasons in the premier league and look at important metrics that govern a team's offensive ability, defensive ability, accuracy and their overall command of the game and compare them to top-4 averages. As a bonus, we'll also look into a popular enemy of the fans - the owners of Man Utd and their performance in terms of spending seen in contrast with personal benefit. Let's dive right in.
+
+
+## Library and Data Import
+To conduct our study, we work with consolidated data from fbref.com and football-data.co.uk and we load some basic packages into RStudio that will facilitate our analysis.
+
+```{r load}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(ggthemes)
+library(extrafont)
+library(ggdark)
+
+MUdf <- as.data.frame(read.csv("UTDConsol.csv"))
+Lgdf <- as.data.frame(read.csv("LeagueConsol.csv"))
+head(MUdf)
+head(Lgdf)
+```
+
+## Offensive Ability
+Here we look at how Man Utd has performed - considering 3 primary offensive metrics:\n
+
+1) Goals Scored\n
+2) Shots Attempted\n
+3) Progressive Passes made\n
+
+### Goals Scored
+```{r off1}
+Lgdf <- Lgdf %>%  mutate(Points = Wins*3+Draws*1) %>% arrange(Season, desc(Points))
+
+MUGTot <- MUdf %>% group_by(Season) %>% summarise(GoalsF = sum(GF))
+PLGTot <- Lgdf %>% group_by(Season) %>% summarise(GoalsFL = mean(GF[c(1:4)]))
+PLGTot <- cbind(MUGTot,PLGTot$GoalsFL)
+colnames(PLGTot) <- c("Season", "Utd_Total_Goals", "League_Average_Goals")
+ggplot(PLGTot) + geom_point(aes(Season,Utd_Total_Goals), size = 4, colour = "tomato2") + geom_point(aes(Season,League_Average_Goals), size = 4, colour = "purple3") + geom_line(aes(Season, Utd_Total_Goals, group = 1), alpha = 0.6, size = 1.5, colour = "tomato2") + geom_line(aes(Season, League_Average_Goals, group = 1), alpha = 0.6, size = 1.5, colour = "purple3") + labs(x = "Season", y = "Goals", title = "Goals scored comparison", subtitle = "Goals scored by Man Utd vs Average goals scored per team each season") + dark_theme_grey()
+```
+
+
+### Shots Attempted
+
+```{r off2}
+MUSTot <- MUdf %>% group_by(Season) %>% summarise(Shots = sum(Sh))
+PLSTot <- Lgdf %>% group_by(Season) %>% summarise(ShotsL = mean(Sh[c(1:4)]))
+PLSTot <- cbind(MUSTot,PLSTot$ShotsL)
+colnames(PLSTot) <- c("Season", "Utd_Total_Shots", "League_Average_Shots")
+ggplot(PLSTot) + geom_point(aes(Season,Utd_Total_Shots), size = 4, colour = "tomato2") + geom_point(aes(Season,League_Average_Shots), size = 4, colour = "purple3") + geom_line(aes(Season, Utd_Total_Shots, group = 1), alpha = 0.6, size = 1.5, colour = "tomato2") + geom_line(aes(Season, League_Average_Shots, group = 1), alpha = 0.6, size = 1.5, colour = "purple3") + labs(x = "Season", y = "Shots", title = "Shots attempted comparison", subtitle = "Shots attempted by Man Utd vs Shots attempted per team each season") + dark_theme_grey()
+```
+
+### Progressive Passes made
+A pass is considered to be progressive if the distance between the starting point and the next touch is at least 30 meters closer to the opponent's goal - considering that the pass starts off in the opponent's half. This, I believe, is a good way to measure offensive intent, gap-finding, as well as Shot chance creation.
+```{r off3}
+MUPPTot <- MUdf %>% group_by(Season) %>% summarise(ProgPass = sum(Progressive.Passes))
+PLPPTot <- Lgdf %>% group_by(Season) %>% summarise(ProgPassL = mean(Progressive.Passes[c(1:4)]))
+PLPPTot <- cbind(MUPPTot,PLPPTot$ProgPassL)
+colnames(PLPPTot) <- c("Season", "Utd_Progressive_Passes", "League_Average_ProgPass")
+ggplot(PLPPTot) + geom_point(aes(Season,Utd_Progressive_Passes), size = 4, colour = "tomato2") + geom_point(aes(Season,League_Average_ProgPass), size = 4, colour = "purple3") + geom_line(aes(Season, Utd_Progressive_Passes, group = 1), alpha = 0.6, size = 1.5, colour = "tomato2") + geom_line(aes(Season, League_Average_ProgPass, group = 1), alpha = 0.6, size = 1.5, colour = "purple3") + labs(x = "Season", y = "Progressive Passes", title = "Progressive Pass comparison", subtitle = "Progressive Passes by Man Utd vs Progressive Passes by top 4 each season") + dark_theme_grey()
+```
+
+### Crosses into Penalty Area
+```{r off4}
+MUCPTot <- MUdf %>% group_by(Season) %>% summarise(CrossPA = sum(Crosses.into.PA))
+PLCPTot <- Lgdf %>% group_by(Season) %>% summarise(CrossPAL = mean(Crosses.into.PA[c(1:4)]))
+PLCPTot <- cbind(MUCPTot,PLCPTot$CrossPAL)
+colnames(PLCPTot) <- c("Season", "Utd_Crosses", "League_Average_Crosses")
+ggplot(PLCPTot) + geom_point(aes(Season,Utd_Crosses), size = 4, colour = "tomato2") + geom_point(aes(Season,League_Average_Crosses), size = 4, colour = "purple3") + geom_line(aes(Season, Utd_Crosses, group = 1), alpha = 0.6, size = 1.5, colour = "tomato2") + geom_line(aes(Season, League_Average_Crosses, group = 1), alpha = 0.6, size = 1.5, colour = "purple3") + labs(x = "Season", y = "Crosses into Penalty Area", title = "Crosses comparison", subtitle = "Crosses into PA by Man Utd vs Crosses into PA by top 4 each season") + dark_theme_grey()
+```
+
+### Summary
+Looking at the visuals we have above, it's quite evident that Man Utd have failed to match the standard of the top 4 teams, in areas of offence. 
+
+```{r sumoff}
+PLGTot <- PLGTot %>% mutate(percdiff1 = (Utd_Total_Goals - League_Average_Goals)/League_Average_Goals)
+PLSTot <- PLSTot %>% mutate(percdiff2 = (Utd_Total_Shots - League_Average_Shots)/League_Average_Shots)
+PLPPTot <- PLPPTot %>% mutate(percdiff3 = (Utd_Progressive_Passes - League_Average_ProgPass)/League_Average_ProgPass)
+PLCPTot <- PLCPTot %>% mutate(percdiff14 = (Utd_Crosses - League_Average_Crosses)/League_Average_Crosses)
+OffavgG <- mean(PLGTot$percdiff1, trim = 0)
+OffavgS <- mean(PLSTot$percdiff2, trim = 0)
+OffavgPP <- mean(PLPPTot$percdiff3, trim = 0)
+OffavgCP <- mean(PLCPTot$percdiff14, trim = 0)
+Offavg <- mean(c(OffavgG,OffavgS,OffavgPP,OffavgCP),trim = 0)
+```
+
+Man Utd in the last 5 seasons, have been approximately 16% below par in terms of offensive playing.
+
+## Defensive Ability
+Here we look at how Man Utd has performed - considering 4 primary defensive metrics:\n
+
+1) Goals Conceded\n
+2) Total Tackles\n
+3) Total Pressures\n
+4) Total Blocks\n
+
+### Goals Conceded
+```{r def1}
+MUGCTot <- MUdf %>% group_by(Season) %>% summarise(GoalsA = sum(GA))
+PLGCTot <- Lgdf %>% group_by(Season) %>% summarise(GoalsAL = mean(GA[c(1:4)]))
+PLGCTot <- cbind(MUGCTot,PLGCTot$GoalsAL)
+colnames(PLGCTot) <- c("Season", "Utd_Total_GoalsConceded", "League_Average_GoalsConceded")
+ggplot(PLGCTot) + geom_point(aes(Season,Utd_Total_GoalsConceded), size = 4, colour = "tomato2") + geom_point(aes(Season,League_Average_GoalsConceded), size = 4, colour = "purple3") + geom_line(aes(Season, Utd_Total_GoalsConceded, group = 1), alpha = 0.6, size = 1.5, colour = "tomato2") + geom_line(aes(Season, League_Average_GoalsConceded, group = 1), alpha = 0.6, size = 1.5, colour = "purple3") + labs(x = "Season", y = "Goals Conceded", title = "Goals conceded comparison", subtitle = "Goals conceded by Man Utd vs Average goals conceded per team each season") + dark_theme_grey()
+```
+
+### Total Tackles
+```{r def2}
+MUTTot <- MUdf %>% group_by(Season) %>% summarise(Tack = sum(Tackles))
+PLTTot <- Lgdf %>% group_by(Season) %>% summarise(TackL = mean(Tackles[c(1:4)]))
+PLTTot <- cbind(MUTTot,PLTTot$TackL)
+colnames(PLTTot) <- c("Season", "Utd_Total_Tackles", "League_Average_Tackles")
+ggplot(PLTTot) + geom_point(aes(Season,Utd_Total_Tackles), size = 4, colour = "tomato2") + geom_point(aes(Season,League_Average_Tackles), size = 4, colour = "purple3") + geom_line(aes(Season, Utd_Total_Tackles, group = 1), alpha = 0.6, size = 1.5, colour = "tomato2") + geom_line(aes(Season, League_Average_Tackles, group = 1), alpha = 0.6, size = 1.5, colour = "purple3") + labs(x = "Season", y = "Total Tackles", title = "Total Tackles comparison", subtitle = "Total Tackles by Man Utd vs Average Tackles by top 4 each season") + dark_theme_grey()
+```
+
+### Total Pressures
+```{r def3}
+MUPTot <- MUdf %>% group_by(Season) %>% summarise(Press = sum(Pressures))
+PLPTot <- Lgdf %>% group_by(Season) %>% summarise(PressL = mean(Pressures[c(1:4)]))
+PLPTot <- cbind(MUPTot,PLPTot$PressL)
+colnames(PLPTot) <- c("Season", "Utd_Total_Pressures", "League_Average_Pressures")
+ggplot(PLPTot) + geom_point(aes(Season,Utd_Total_Pressures), size = 4, colour = "tomato2") + geom_point(aes(Season,League_Average_Pressures), size = 4, colour = "purple3") + geom_line(aes(Season, Utd_Total_Pressures, group = 1), alpha = 0.6, size = 1.5, colour = "tomato2") + geom_line(aes(Season, League_Average_Pressures, group = 1), alpha = 0.6, size = 1.5, colour = "purple3") + labs(x = "Season", y = "Total Pressures", title = "Total Pressures comparison", subtitle = "Total Pressures by Man Utd vs Average Pressures by top 4 each season") + dark_theme_grey()
+```
+
+
+### Total Blocks
+```{r def4}
+MUBTot <- MUdf %>% group_by(Season) %>% summarise(Blk = sum(Blocks))
+PLBTot <- Lgdf %>% group_by(Season) %>% summarise(BlkL = mean(Blocks[c(1:4)]))
+PLBTot <- cbind(MUBTot,PLBTot$BlkL)
+colnames(PLBTot) <- c("Season", "Utd_Total_Blocks", "League_Average_Blocks")
+ggplot(PLBTot) + geom_point(aes(Season,Utd_Total_Blocks), size = 4, colour = "tomato2") + geom_point(aes(Season,League_Average_Blocks), size = 4, colour = "purple3") + geom_line(aes(Season, Utd_Total_Blocks, group = 1), alpha = 0.6, size = 1.5, colour = "tomato2") + geom_line(aes(Season, League_Average_Blocks, group = 1), alpha = 0.6, size = 1.5, colour = "purple3") + labs(x = "Season", y = "Total Blocks", title = "Total Blocks comparison", subtitle = "Total Blocks by Man Utd vs Average Blocks by top 4 each season") + dark_theme_grey()
+```
+
+### Summary
+Defensive performance has been better compared to offensive performance, considering that United have only been 5% below par defensively as opposed to 16% offensively. And although the team has shown far more defensive intent by throwing in more tackles and applying more pressure, they have conceded a ridiculous number of goals, almost 30% below par compared to the top 4 teams. This could expose a problem of execution and accuracy. More answers needed, we look further at accuracy.
+
+```{r sumdef}
+PLGCTot <- PLGCTot %>% mutate(percdiff4 = (Utd_Total_GoalsConceded - League_Average_GoalsConceded)/League_Average_GoalsConceded)
+PLTTot <- PLTTot %>% mutate(percdiff5 = (Utd_Total_Tackles - League_Average_Tackles)/League_Average_Tackles)
+PLPTot <- PLPTot %>% mutate(percdiff6 = (Utd_Total_Pressures - League_Average_Pressures)/League_Average_Pressures)
+PLBTot <- PLBTot %>% mutate(percdiff7 = (Utd_Total_Blocks - League_Average_Blocks)/League_Average_Blocks)
+DefavgGC <- mean(PLGCTot$percdiff4, trim = 0)
+DefavgT <- mean(PLTTot$percdiff5, trim = 0)
+DefavgP <- mean(PLPTot$percdiff6, trim = 0)
+DefavgB <- mean(PLBTot$percdiff7, trim = 0)
+Defavg <- mean(c((-1*DefavgGC),DefavgT,DefavgP,DefavgB),trim = 0)
+```
+
+## Accuracy
+
+```{r acc}
+MUdf <- MUdf %>% mutate(ShotAcc = SoT/Sh)
+Lgdf <- Lgdf %>% mutate(ShotAccL = SoT/Sh)
+MUdf <- MUdf %>% mutate(PassAcc = Completed.Passes/Total.Passes)
+Lgdf <- Lgdf %>% mutate(PassAccL = Completed.Passes/Total.Passes)
+MUdf <- MUdf %>% mutate(TackAcc = Tackles.Won/Tackles)
+Lgdf <- Lgdf %>% mutate(TackAccL = Tackles.Won/Tackles)
+AccSM <- MUdf %>% group_by(Season) %>% summarise(Shot_Accuracy = mean(ShotAcc))
+AccSL <- Lgdf %>% group_by(Season) %>% summarise(League_ShotAccuracy = mean(ShotAccL[c(1:4)]))
+AccPM <- MUdf %>% group_by(Season) %>% summarise(Pass_Accuracy = mean(PassAcc))
+AccPL <- Lgdf %>% group_by(Season) %>% summarise(League_PassAccuracy = mean(PassAccL[c(1:4)]))
+AccTM <- MUdf %>% group_by(Season) %>% summarise(TacklesWon = mean(TackAcc))
+AccTL <- Lgdf %>% group_by(Season) %>% summarise(League_TacklesWon = mean(TackAccL[c(1:4)]))
+AccSL <- cbind(AccSL,AccSM$Shot_Accuracy)
+colnames(AccSL) <- c("Season","League_ShotAcc","MU_ShotAcc")
+AccPL <- cbind(AccPL,AccPM$Pass_Accuracy)
+colnames(AccPL) <- c("Season","League_PassAcc","MU_PassAcc")
+AccTL <- cbind(AccTL,AccTM$TacklesWon)
+colnames(AccTL) <- c("Season","League_TackAcc","MU_TackAcc")
+ggplot(AccSL) + geom_point(aes(Season,MU_ShotAcc), size = 4, colour = "tomato2") + geom_point(aes(Season,League_ShotAcc), size = 4, colour = "purple3") + geom_line(aes(Season, MU_ShotAcc, group = 1), alpha = 0.6, size = 1.5, colour = "tomato2") + geom_line(aes(Season, League_ShotAcc, group = 1), alpha = 0.6, size = 1.5, colour = "purple3") + labs(x = "Season", y = "Shot Accuracy", title = "Shot Accuracy comparison", subtitle = "Man Utd Accuracy vs Average Accuracy by top 4 each season") + dark_theme_grey()
+ggplot(AccPL) + geom_point(aes(Season,MU_PassAcc), size = 4, colour = "tomato2") + geom_point(aes(Season,League_PassAcc), size = 4, colour = "purple3") + geom_line(aes(Season, MU_PassAcc, group = 1), alpha = 0.6, size = 1.5, colour = "tomato2") + geom_line(aes(Season, League_PassAcc, group = 1), alpha = 0.6, size = 1.5, colour = "purple3") + labs(x = "Season", y = "Pass Accuracy", title = "Pass Accuracy comparison", subtitle = "Man Utd Accuracy vs Average Accuracy by top 4 each season") + dark_theme_grey()
+ggplot(AccTL) + geom_point(aes(Season,MU_TackAcc), size = 4, colour = "tomato2") + geom_point(aes(Season,League_TackAcc), size = 4, colour = "purple3") + geom_line(aes(Season, MU_TackAcc, group = 1), alpha = 0.6, size = 1.5, colour = "tomato2") + geom_line(aes(Season, League_TackAcc, group = 1), alpha = 0.6, size = 1.5, colour = "purple3") + labs(x = "Season", y = "Tackles Won", title = "Tackles Won comparison", subtitle = "Tackles Won by man Utd vs Average Tackles Won by top 4 each season") + dark_theme_grey()
+ShotAccM2 <- mean(AccSL$MU_ShotAcc)
+ShotAccL2 <- mean(AccSL$League_ShotAcc)
+PassAccM2 <- mean(AccPL$MU_PassAcc)
+PassAccL2 <- mean(AccPL$League_PassAcc)
+TackAccM2 <- mean(AccTL$MU_TackAcc)
+TackAccL2 <- mean(AccTL$League_TackAcc)
+```
+
+
+### Summary
+Clearly, apart from shot accuracy, United falls behind severely when it comes to execution of passes and tackles. This means that there's intent, but not quite the execution you'd imagine.
+
+##Command
+Now we look at how has United managed to control their games. Considering how much they've passed the ball around, kept the ball, or mustered up the confidence to come back from behind. Let's take a look.
+
+### Possession
+```{r comm1}
+MUPoss <- MUdf %>% group_by(Season) %>% summarize(Possession = mean(Poss..))
+LPoss <- Lgdf %>% group_by(Season) %>% summarize(PossessionL = mean(Poss..[c(1:4)]))
+LPoss <- cbind(LPoss,MUPoss$Possession)
+colnames(LPoss) <- c("Season","League_AvgPoss","MU_Poss1")
+ggplot(LPoss) + geom_point(aes(Season,MU_Poss1), size = 4, colour = "tomato2") + geom_point(aes(Season,League_AvgPoss), size = 4, colour = "purple3") + geom_line(aes(Season, MU_Poss1, group = 1), alpha = 0.6, size = 1.5, colour = "tomato2") + geom_line(aes(Season, League_AvgPoss, group = 1), alpha = 0.6, size = 1.5, colour = "purple3") + labs(x = "Season", y = "Possession", title = "Possession comparison", subtitle = "Man Utd average Possession vs Average Possession by top 4 each season") + dark_theme_grey()
+PossDiff <- (mean(LPoss$MU_Poss1)-mean(LPoss$League_AvgPoss))/mean(LPoss$League_AvgPoss)
+```
+
+### Total Passes
+```{r comm2}
+MUPass <- MUdf %>% group_by(Season) %>% summarize(Passes = mean(Total.Passes))
+LPass <-  Lgdf %>% group_by(Season) %>% summarize(Passes = mean(Total.Passes[c(1:4)]/38))
+LPass <- cbind(LPass,MUPass$Passes)
+colnames(LPass) <- c("Season","League_AvgPass","MU_Pass1")
+ggplot(LPass) + geom_point(aes(Season,MU_Pass1), size = 4, colour = "tomato2") + geom_point(aes(Season,League_AvgPass), size = 4, colour = "purple3") + geom_line(aes(Season, MU_Pass1, group = 1), alpha = 0.6, size = 1.5, colour = "tomato2") + geom_line(aes(Season, League_AvgPass, group = 1), alpha = 0.6, size = 1.5, colour = "purple3") + labs(x = "Season", y = "Passes", title = "Passes per game comparison", subtitle = "Passes by Man Utd vs Average number of passes by top 4 each season") + dark_theme_grey()
+```
+
+### Comebacks
+```{r cb}
+MUdf <- MUdf %>% mutate(Position = case_when(Venue == "H" & HTHG<HTAG ~ "Down", Venue == "A" & HTAG<HTHG ~ "Down", TRUE ~ "Lead/Tie"))
+MUDown <- MUdf %>% filter(Position == "Down")
+MUDown <- MUDown %>% mutate(CB = case_when(Venue == "H" & FTHG>=FTAG ~ "Comeback", Venue == "A" & FTAG>=FTHG ~ "Comeback", TRUE ~ "No Comeback"))
+var1 <- as.data.frame(MUDown %>% group_by(CB) %>% summarise(n = n()))
+CBperc <- var1$n[1]/(var1$n[2] + var1$n[1])
+```
+
+On 44 out of 190 occasions, Man Utd have been down at Half Time, but only 17 of those occasions have they been able to come back and secure a draw or a win - 38.6% of the time. Which means that majorly speaking, most times when United is down, they have been unable to find the confidence and drive to make a comeback.
+
